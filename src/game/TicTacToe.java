@@ -3,13 +3,13 @@ package game;
 import ai.AI;
 import ui.Display;
 import ui.PlayerInput;
+import ui.AudioPlayer;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +22,7 @@ public class TicTacToe implements PlayerInput {
 
     private final Board board;
     private final Display display;
+    private final AudioPlayer audioPlayer;
 
     private final BufferedImage xImg;
     private final BufferedImage oImg;
@@ -37,15 +38,17 @@ public class TicTacToe implements PlayerInput {
      * @param size
      * The size of the Display that should be created
      *
-     * @throws IOException
+     * @throws Exception
      * Throws if there was an error accessing the image files
+     * Throws if there was an error accessing the audio files
      */
-    private TicTacToe(int size) throws IOException {
+    private TicTacToe(int size) throws Exception {
         this.xImg = ImageIO.read(new File("images/x.png"));
         this.oImg = ImageIO.read(new File("images/o.png"));
         this.boardImg = ImageIO.read(new File("images/board.png"));
 
         this.board = new Board();
+        this.audioPlayer = new AudioPlayer("audio/move.wav");
         this.display = new Display("Tic-Tac-Toe", size, this.boardImg);
         this.service = Executors.newSingleThreadScheduledExecutor();
     }
@@ -66,6 +69,7 @@ public class TicTacToe implements PlayerInput {
      */
     private void end() {
         this.service.shutdown();
+        this.audioPlayer.close();
     }
 
     /**
@@ -85,6 +89,7 @@ public class TicTacToe implements PlayerInput {
         if((this.singlePlayer && this.board.getTurn() != Board.Piece.X) || !this.board.move(p.y * 3 + p.x))
             return;
 
+        this.audioPlayer.play();
         this.display.updateImage(generateImage());
         if(this.board.isGameOver()) {
             onGameOver();
@@ -94,10 +99,12 @@ public class TicTacToe implements PlayerInput {
         if(singlePlayer) {
             this.service.schedule(() -> {
                 this.board.move(AI.getAlphaBetaMove(board, Board.Piece.O));
+                this.audioPlayer.play();
+
                 this.display.updateImage(generateImage());
                 if(this.board.isGameOver())
                     onGameOver();
-            }, 300, TimeUnit.MILLISECONDS);
+            }, 1000, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -195,10 +202,10 @@ public class TicTacToe implements PlayerInput {
      * @param args
      * String array of arguments passed through command line
      *
-     * @throws IOException
+     * @throws Exception
      * Throws if an error occurs when creating the TicTacToe object
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         TicTacToe ticTacToe = new TicTacToe(400);
         Runtime.getRuntime().addShutdownHook(new Thread(ticTacToe::end));
         ticTacToe.run();
