@@ -1,2 +1,2 @@
 # TicTacToe
-Readme to be updated (soon)
+A simple tictactoe ai created in java that utilizes minimax and alpha beta pruning
