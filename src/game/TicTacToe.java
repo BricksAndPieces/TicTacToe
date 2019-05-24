@@ -1,9 +1,9 @@
 package game;
 
 import ai.AI;
-import ui.Display;
-import ui.PlayerInput;
-import ui.AudioPlayer;
+import util.Display;
+import util.PlayerInput;
+import util.AudioPlayer;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
